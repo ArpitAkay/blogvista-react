@@ -1,9 +1,13 @@
 import axios from "axios"
 
-export const WebServiceInvokerRest = async (hostname, urlContent, method, requestBody, requestParams) => {
+export const WebServiceInvokerRest = async (hostname, urlContent, method, headers, requestBody, requestParams) => {
     const config = {
         method: method,
         url: hostname + urlContent,
+    }
+
+    if (headers) {
+        config.headers = headers;
     }
 
     if (requestBody) {
@@ -17,7 +21,7 @@ export const WebServiceInvokerRest = async (hostname, urlContent, method, reques
     try {
         return await axios(config);
     }
-    catch(err) {
+    catch (err) {
         return err.response;
     }
 }

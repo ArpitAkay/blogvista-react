@@ -21,6 +21,10 @@ const Navbar = () => {
         navigate("/login");
     }
 
+    const handleContactClick = () => {
+        document.getElementById("footer").scrollIntoView({ behavior: 'smooth' });
+    }
+
     return (
         <nav className="navbar navbar-expand-lg bg-primary-subtle">
             <div className="container-fluid w-75">
@@ -31,12 +35,12 @@ const Navbar = () => {
                 <div className="collapse navbar-collapse" id="navbarSupportedContent">
                     <ul className="navbar-nav me-auto mb-2 mb-lg-0">
                         <li className="nav-item">
-                            <Link className="nav-link active" aria-current="page" href="/#">Contact</Link>
+                            <Link className="nav-link active" aria-current="page" onClick={handleContactClick} to="/">Contact</Link>
                         </li>
                     </ul>
                     <span className="navbar-text d-flex flex-row align-items-baseline me-2">
-                        <i className="fa-solid fa-pen-nib me-2"></i>
-                        <Link className="nav-link active" aria-current="page" href="/#">Write</Link>
+                        <i className="fa-solid fa-pen-nib me-2" onClick={() => navigate("/writeBlog")}></i>
+                        <Link className="nav-link active" aria-current="page" to="/writeBlog">Write</Link>
                     </span>
                     <div>
                         <div className="btn-group" role="group">
