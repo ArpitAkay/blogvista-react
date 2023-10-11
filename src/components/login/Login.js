@@ -45,7 +45,9 @@ const Login = (props) => {
       hostname,
       urlContent,
       "POST",
-      requestBody
+      null,
+      requestBody,
+      null
     );
 
     spinnerElem.classList.remove("spinner-border");
@@ -61,6 +63,7 @@ const Login = (props) => {
             email: response.data.email,
             authToken: response.data.accessToken,
             refreshToken: response.data.refreshToken,
+            role: response.data.roles[0].roleName
           },
         })
       );
@@ -105,7 +108,7 @@ const Login = (props) => {
             <button type="button" className="btn text-primary p-0" id="forget-password" style={{ border: "none" }} onClick={() => navigate("/forgetPassword")}>
               Forget password?
             </button>
-            <button type="button" className="btn text-primary p-0" id="verify-account" style={{ border: "none" }} onClick={() => navigate("/forgetPassword")}>
+            <button type="button" className="btn text-primary p-0" id="verify-account" style={{ border: "none" }} onClick={() => navigate("/verifyEmail")}>
               Verify your account?
             </button>
           </div>

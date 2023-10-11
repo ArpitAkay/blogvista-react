@@ -66,7 +66,7 @@ const Signup = (props) => {
         const cPasswordElem = document.getElementById("cPassword");
         cPasswordValue.match(
             "^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])(?=.{10,})[a-zA-Z0-9!@#$%^&*]+$"
-        ) && event.target.value === password
+        ) && cPasswordValue === password
             ? cPasswordElem.classList.add("is-valid")
             : cPasswordElem.classList.remove("is-valid");
     };
@@ -101,7 +101,9 @@ const Signup = (props) => {
             hostname,
             urlContent,
             "POST",
-            requestBody
+            null,
+            requestBody,
+            null
         );
 
         spinnerElem.classList.remove("spinner-border");
@@ -163,7 +165,6 @@ const Signup = (props) => {
         const urlContent =
             process.env.REACT_APP_AUTHENTICATION_ENDPOINT +
             process.env.REACT_APP_GOOGLE_LOGIN;
-        console.log(process.env.REACT_APP_GOOGLE);
 
         const requestParams = {
             idTokenString: idTokenString,
@@ -173,6 +174,7 @@ const Signup = (props) => {
             hostname,
             urlContent,
             "POST",
+            null,
             null,
             requestParams
         );
@@ -195,6 +197,20 @@ const Signup = (props) => {
         }
     };
 
+    const handleShowPassword = () => {
+        const passwordElem = document.getElementById("password");
+        const cPasswordElem = document.getElementById("cPassword");
+
+        if (passwordElem.type === "password") {
+            passwordElem.type = "text";
+            cPasswordElem.type = "text";
+        }
+        else {
+            passwordElem.type = "password";
+            cPasswordElem.type = "password";
+        }
+    }
+
     return (
         <div style={{ width: "100vw", height: "100vh" }}>
             <div className="d-flex flex-row justify-content-center" style={{ position: "relative", top: "7%" }}>
@@ -205,7 +221,7 @@ const Signup = (props) => {
                         </button>
                     </div>
                     <h4 className="text-primary">Create your account</h4>
-                    <div className="d-flex">
+                    <div className="d-flex flex-row">
                         <div className="mb-3 me-2">
                             <label htmlFor="firstName" className="form-label">
                                 First Name
@@ -235,18 +251,6 @@ const Signup = (props) => {
                             />
                         </div>
                     </div>
-                    {/* <div className="mb-3">
-                        <label htmlFor="phoneNumber" className="form-label">
-                            Phone Number
-                        </label>
-                        <input
-                            type="text"
-                            className="form-control"
-                            id="phoneNumber"
-                            value={phoneNumber}
-                            onChange={handlePhoneNumber}
-                        />
-                    </div> */}
                     <div className="mb-3">
                         <label htmlFor="phoneNumber" className="form-label">
                             Phone Number
@@ -294,7 +298,7 @@ const Signup = (props) => {
                             required
                         />
                     </div>
-                    <div className="mb-3">
+                    <div className="mb-1">
                         <label htmlFor="cPassword" className="form-label">
                             Confirm Password
                         </label>
@@ -307,6 +311,12 @@ const Signup = (props) => {
                             aria-describedby="cPassword"
                             required
                         />
+                    </div>
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault" onClick={handleShowPassword} />
+                        <label class="form-check-label" for="flexCheckDefault">
+                            Show Password
+                        </label>
                     </div>
                     <div className="d-flex justify-content-center">
                         <button type="submit" className="btn btn-primary">
