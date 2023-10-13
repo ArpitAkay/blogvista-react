@@ -18,6 +18,7 @@ import VerifyEmail from './components/verify_email/VerifyEmail';
 import WriteBlog from './components/write_blog/WriteBlog';
 import ShowBlog from './components/show_blog/ShowBlog';
 import MyBlogs from './components/my_blogs/MyBlogs';
+import EditBlog from './components/edit_blog/EditBlog';
 
 function App() {
   const [toast, setToast] = useState(false);
@@ -53,6 +54,7 @@ function App() {
             <Route path="/writeBlog" element={<WriteBlog showToast={showToast} />} />
             <Route path="/showBlog/:blogId" element={<ShowBlog showToast={showToast} />} />
             <Route path="/myBlogs" element={<MyBlogs showToast={showToast} />} />
+            <Route path="/editBlog/:blogId" element={<EditBlog showToast={showToast} />} />
           </Route>
         </Routes>
       </Router>
