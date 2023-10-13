@@ -66,8 +66,7 @@ const ShowBlog = (props) => {
           </div>
         </div>
         <div className="my-5 d-flex justify-content-center">
-          {/* <img src={blogPreviewImageUrl === null ? Image_not_available : blogPreviewImageUrl} class="img-fluid" alt="Error loading" /> */}
-          <img src="https://blogvista.s3.ap-south-1.amazonaws.com/1_BQ-yMaG77_Gt3wd8mDUbOQ.webp" class="img-fluid" alt="Error loading" />
+          <img src={blogPreviewImageUrl === null ? Image_not_available : blogPreviewImageUrl} className="img-fluid" alt="Error loading" />
         </div>
         <div className="p-4 border border-light shadow-lg bg-body-tertiary rounded-4" id="content">
         </div>

@@ -35,7 +35,10 @@ const Navbar = () => {
                 <div className="collapse navbar-collapse" id="navbarSupportedContent">
                     <ul className="navbar-nav me-auto mb-2 mb-lg-0">
                         <li className="nav-item">
-                            <Link className="nav-link active" aria-current="page" onClick={handleContactClick} to="/">Contact</Link>
+                            <Link className="nav-link active" aria-current="page" to="/">Home</Link>
+                        </li>
+                        <li className="nav-item">
+                            <Link className="nav-link active" aria-current="page" onClick={handleContactClick}>Contact</Link>
                         </li>
                     </ul>
                     <span className="navbar-text d-flex flex-row align-items-baseline me-2">
@@ -51,6 +54,7 @@ const Navbar = () => {
                             </button>
                             <ul className="dropdown-menu">
                                 <li><Link className="dropdown-item" to="/myAccount">My Account</Link></li>
+                                <li><Link className="dropdown-item" to="/myBlogs">My Blogs</Link></li>
                                 <li><Link className="dropdown-item" onClick={handleLogout}>Logout</Link></li>
                             </ul>
                         </div>

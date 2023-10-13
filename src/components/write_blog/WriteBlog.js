@@ -3,6 +3,8 @@ import { Editor } from '@tinymce/tinymce-react';
 import { useNavigate } from 'react-router';
 import { useSelector } from 'react-redux';
 import { WebServiceInvokerRest } from '../../util/WebServiceInvoker';
+import Navbar from '../navbar/Navbar';
+import Footer from '../footer/Footer';
 
 const WriteBlog = (props) => {
   const [blogTitle, setBlogTitle] = useState("");
@@ -137,6 +139,7 @@ const WriteBlog = (props) => {
 
   return (
     <>
+    <Navbar />
       <div className="d-flex flex-row justify-content-center" style={{ width: "100vw" }}>
         <div className="border border-primary rounded-4 p-5" style={{ width: "80%" }}>
           <form onSubmit={handleBlogSubmit}>
@@ -199,6 +202,7 @@ const WriteBlog = (props) => {
           </form>
         </div>
       </div>
+      <Footer />
     </>
   )
 }

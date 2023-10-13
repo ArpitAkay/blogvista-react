@@ -16,7 +16,7 @@ const Footer = () => {
                             <i className="fa-brands fa-facebook fa-xl" onClick={() => window.open("https://www.facebook.com/arpitkumar4000/", "_blank")}></i>
                             <i className="fa-brands fa-square-instagram fa-xl" onClick={() => window.open("https://www.instagram.com/arpit_noob31/", "_blank")}></i>
                             <i className="fa-brands fa-square-x-twitter fa-xl" onClick={() => window.open("https://twitter.com/arpit_noob31", "_blank")}></i>
-                            <i className="fa-brands fa-linkedin fa-xl" onClick={() => window.open("https://www.linkedin.com/in/arpit-kumar-5a26201b4/", "_blank")}></i>
+                            <i className="fa-brands fa-linkedin fa-xl" onClick={() => window.open("www.linkedin.com/in/arpit-kumar-5a26201b4", "_blank")}></i>
                             <i className="fa-brands fa-square-github fa-xl" onClick={() => window.open("https://github.com/ArpitAkay", "_blank")}></i>
                         </div>
                     </div>

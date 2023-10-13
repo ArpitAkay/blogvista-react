@@ -93,7 +93,7 @@ const Home = (props) => {
 
 
   return (
-    <div style={{ width: "100vw", height: "100vh" }}>
+    <div style={{ width: "100vw"}}>
       <Navbar />
       <Search />
       <div className="d-flex flex-column justify-content-center mt-5">
