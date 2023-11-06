@@ -1,12 +1,8 @@
-import React, { useState } from "react";
-import { WebServiceInvokerRest } from "../../util/WebServiceInvoker";
-import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
-import { useDispatch } from "react-redux";
-import { useNavigate } from "react-router-dom";
-import { updateAuth } from "../../redux/slices/AuthSlice";
-import PhoneInput from "react-phone-input-2";
+import React, { useState } from 'react'
+import { WebServiceInvokerRest } from '../../util/WebServiceInvoker'
+import PhoneInput from 'react-phone-input-2'
 import 'react-phone-input-2/lib/style.css'
-import "./Signup.css";
+import './Signup.css'
 
 const Signup = (props) => {
     const [firstName, setFirstName] = useState("");
@@ -15,8 +11,7 @@ const Signup = (props) => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [cPassword, setCPassword] = useState("");
-    const dispatch = useDispatch();
-    const navigate = useNavigate();
+    const [loading, setLoading] = useState(false);
 
     const handleFirstName = (event) => {
         const firstNameValue = event.target.value;
@@ -38,6 +33,15 @@ const Signup = (props) => {
 
     const handlePhoneNumber = (value) => {
         setPhoneNumber(value);
+        const phoneNumberElem = document.getElementById("phoneNumber");
+        if (value.length === 12) {
+            document.getElementsByClassName("flag-dropdown")[0].classList.add("border-success");
+            phoneNumberElem.classList.add("is-valid", "border-success");
+        }
+        else {
+            document.getElementsByClassName("flag-dropdown")[0].classList.remove("border-success");
+            phoneNumberElem.classList.remove("is-valid", "border-success");
+        }
     };
 
     const handleEmail = (event) => {
@@ -73,41 +77,33 @@ const Signup = (props) => {
 
     const handleSignUpSubmit = async (event) => {
         event.preventDefault();
-        const spinnerElem = document.getElementsByTagName("span")[0];
-        const textElem = document.getElementsByTagName("span")[1];
-        spinnerElem.classList.add("spinner-border");
-        textElem.classList.add("visually-hidden");
+        setLoading(true);
 
-        let validationBoolean = await checkValidationsForSignup();
+        const validationBoolean = await checkValidationsForSignup();
 
         if (validationBoolean) {
-            spinnerElem.classList.remove("spinner-border");
-            textElem.classList.remove("visually-hidden");
+            setLoading(false);
             return;
         }
 
-        const requestBody = {
+        const signUpReq = {
             firstName: firstName,
             lastName: lastName,
             email: email,
             password: password,
             phoneNumber: phoneNumber,
         };
+
         const hostname = process.env.REACT_APP_HOST_AND_PORT;
-        const urlContent =
-            process.env.REACT_APP_AUTHENTICATION_ENDPOINT +
-            process.env.REACT_APP_SIGN_UP;
+        const urlContent = process.env.REACT_APP_AUTHENTICATION_ENDPOINT + process.env.REACT_APP_SIGN_UP;
         const response = await WebServiceInvokerRest(
             hostname,
             urlContent,
             "POST",
             null,
-            requestBody,
+            signUpReq,
             null
         );
-
-        spinnerElem.classList.remove("spinner-border");
-        textElem.classList.remove("visually-hidden");
 
         if (response.status === 201) {
             setFirstName("");
@@ -126,6 +122,7 @@ const Signup = (props) => {
         else {
             props.showToast("Failed", response.data.detail);
         }
+        setLoading(false);
     };
 
     const checkValidationsForSignup = async () => {
@@ -160,43 +157,6 @@ const Signup = (props) => {
         return false;
     }
 
-    const handleGoogleLogin = async (idTokenString) => {
-        const hostname = process.env.REACT_APP_HOST_AND_PORT;
-        const urlContent =
-            process.env.REACT_APP_AUTHENTICATION_ENDPOINT +
-            process.env.REACT_APP_GOOGLE_LOGIN;
-
-        const requestParams = {
-            idTokenString: idTokenString,
-        };
-
-        const response = await WebServiceInvokerRest(
-            hostname,
-            urlContent,
-            "POST",
-            null,
-            null,
-            requestParams
-        );
-
-        if (response.status === 200) {
-            console.log(response);
-            dispatch(
-                updateAuth({
-                    type: "LoggedIn",
-                    state: {
-                        name: response.data.name,
-                        email: response.data.email,
-                        authToken: response.data.accessToken,
-                        refreshToken: response.data.refreshToken,
-                    },
-                })
-            );
-            navigate("/");
-        } else {
-        }
-    };
-
     const handleShowPassword = () => {
         const passwordElem = document.getElementById("password");
         const cPasswordElem = document.getElementById("cPassword");
@@ -212,37 +172,31 @@ const Signup = (props) => {
     }
 
     return (
-        <div style={{ width: "100vw", height: "100vh" }}>
-            <div className="d-flex flex-row justify-content-center" style={{ position: "relative", top: "7%" }}>
-                <form className="border border-primary rounded-4 p-5" onSubmit={handleSignUpSubmit}>
-                    <div className="mb-2">
-                        <button type="button" className="btn text-primary p-0" id="create-account" style={{ border: "none" }} onClick={() => navigate("/login")}>
-                            &#8592; Back to login
-                        </button>
-                    </div>
-                    <h4 className="text-primary">Create your account</h4>
+        <div style={{ width: "100vw", height: "87vh" }}>
+            <div className="d-flex flex-row justify-content-center" style={{ position: "relative", top: "5%" }}>
+                <form className="border shadow rounded-4 p-5" onSubmit={handleSignUpSubmit}>
+                    <h4 className="text-primary my-3"><i>Create your account</i></h4>
                     <div className="d-flex flex-row">
                         <div className="mb-3 me-2">
                             <label htmlFor="firstName" className="form-label">
-                                First Name
+                                <i>First Name</i>
                             </label>
                             <input
                                 type="text"
-                                className="form-control"
+                                className="form-control pe-5"
                                 id="firstName"
                                 value={firstName}
                                 onChange={handleFirstName}
-                                aria-describedby="firstName"
                                 required
                             />
                         </div>
                         <div className="mb-3 ms-2">
                             <label htmlFor="lastName" className="form-label">
-                                Last Name
+                                <i>Last Name</i>
                             </label>
                             <input
                                 type="text"
-                                className="form-control"
+                                className="form-control pe-5"
                                 id="lastName"
                                 value={lastName}
                                 onChange={handleLastName}
@@ -253,26 +207,28 @@ const Signup = (props) => {
                     </div>
                     <div className="mb-3">
                         <label htmlFor="phoneNumber" className="form-label">
-                            Phone Number
+                            <i>Phone Number</i>
                         </label>
-                        <PhoneInput
-                            country={'in'}
-                            onlyCountries={['in']}
-                            countryCodeEditable={false}
-                            enableSearch={true}
-                            disableSearchIcon={true}
-                            placeholder="+91 1234567890"
-                            value={phoneNumber}
-                            onChange={handlePhoneNumber}
-                            inputProps={{
-                                id: 'phoneNumber',
-                                required: true,
-                            }}
-                        />
+                        <div className="border-success is-valid">
+                            <PhoneInput
+                                country={'in'}
+                                onlyCountries={['in']}
+                                countryCodeEditable={false}
+                                enableSearch={true}
+                                disableSearchIcon={true}
+                                placeholder="+91 1234567890"
+                                value={phoneNumber}
+                                onChange={handlePhoneNumber}
+                                inputProps={{
+                                    id: 'phoneNumber',
+                                    required: true,
+                                }}
+                            />
+                        </div>
                     </div>
                     <div className="mb-3">
                         <label htmlFor="email" className="form-label">
-                            Email address
+                            <i>Email address</i>
                         </label>
                         <input
                             type="email"
@@ -286,7 +242,7 @@ const Signup = (props) => {
                     </div>
                     <div className="mb-3">
                         <label htmlFor="password" className="form-label">
-                            Password
+                            <i>Password</i>
                         </label>
                         <input
                             type="password"
@@ -300,7 +256,7 @@ const Signup = (props) => {
                     </div>
                     <div className="mb-1">
                         <label htmlFor="cPassword" className="form-label">
-                            Confirm Password
+                            <i>Confirm Password</i>
                         </label>
                         <input
                             type="password"
@@ -312,32 +268,17 @@ const Signup = (props) => {
                             required
                         />
                     </div>
-                    <div class="form-check mb-3">
-                        <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault" onClick={handleShowPassword} />
-                        <label class="form-check-label" for="flexCheckDefault">
-                            Show Password
+                    <div className="form-check mb-3">
+                        <input className="form-check-input" type="checkbox" value="" id="flexCheckDefault" onClick={handleShowPassword} />
+                        <label className="form-check-label" htmlFor="flexCheckDefault">
+                            <i>Show Password</i>
                         </label>
                     </div>
                     <div className="d-flex justify-content-center">
-                        <button type="submit" className="btn btn-primary">
-                            <span className="spinner-border-sm" aria-hidden="true"></span>
-                            <span role="status">Sign up</span>
+                        <button type="submit" className="btn btn-sm btn-primary">
+                            <span className={`${loading ? "spinner-border" : ""} spinner-border-sm`} aria-hidden="true"></span>
+                            <span className={loading ? "visually-hidden" : ""} role="status"><i>Sign up</i></span>
                         </button>
-                    </div>
-                    <div className="d-flex flex-column align-items-center">
-                        <p className="m-2">or</p>
-                        <GoogleOAuthProvider clientId="645561507231-9h880rl8j5aske5c52c49epfjgukp034.apps.googleusercontent.com">
-                            <GoogleLogin
-                                onSuccess={(credentialResponse) => {
-                                    handleGoogleLogin(credentialResponse.credential);
-                                }}
-                                onError={() => {
-                                    console.log("Login Failed");
-                                }}
-                                useOneTap
-                                auto_select={true}
-                            />
-                        </GoogleOAuthProvider>
                     </div>
                 </form>
             </div>

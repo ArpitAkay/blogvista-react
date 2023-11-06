@@ -1,3 +1,4 @@
+// eslint-disable-next-line
 import { combineReducers, configureStore, getDefaultMiddleware } from "@reduxjs/toolkit"
 import AuthSlice from "../slices/AuthSlice.js"
 import storage from "redux-persist/lib/storage";

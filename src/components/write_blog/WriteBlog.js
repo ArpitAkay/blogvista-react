@@ -1,27 +1,21 @@
 import React, { useRef, useState } from 'react'
 import { Editor } from '@tinymce/tinymce-react';
-import { useNavigate } from 'react-router';
 import { useSelector } from 'react-redux';
 import { WebServiceInvokerRest } from '../../util/WebServiceInvoker';
-import Navbar from '../navbar/Navbar';
 import Footer from '../footer/Footer';
+import './WriteBlog.css'
+import uploadImage from '../../images/uploadImage.webp'
 
 const WriteBlog = (props) => {
   const [blogTitle, setBlogTitle] = useState("");
-  const [blogPreviewImage, setBlogPreviewImage] = useState(null);
-  const [categories, setCategories] = useState([]);
+  const [blogPreviewImage, setBlogPreviewImage] = useState("");
   const [blogCategory, setBlogCategory] = useState("");
   const [blogStatus, setBlogStatus] = useState("");
-  const navigate = useNavigate();
+  const [blogCategoryImageBase64, setBlogCategoryImageBase64] = useState(uploadImage);
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(false);
   const editorRef = useRef(null);
   const auth = useSelector((state) => state.auth);
-
-  // const log = (event) => {
-  //   event.preventDefault();
-  //   if (editorRef.current) {
-  //     console.log(editorRef.current.getContent());
-  //   }
-  // };
 
   const handleFetchCategories = async () => {
     const hostname = process.env.REACT_APP_HOST_AND_PORT;
@@ -55,16 +49,22 @@ const WriteBlog = (props) => {
   }
 
   const handleFileChange = (event) => {
-    setBlogPreviewImage(event.target.files[0]);
+    const file = event.target.files[0];
+    setBlogPreviewImage(file);
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onloadend = () => {
+      setBlogCategoryImageBase64(reader.result);
+    }
   }
 
   const handleSelectedCategory = (event) => {
-    console.log(event.target.value)
     setBlogCategory(event.target.value);
   }
 
   const handleBlogSubmit = async (event) => {
     event.preventDefault();
+    setLoading(true);
 
     const spinnerElem = blogStatus === "CREATED" ? document.getElementById("create-loader") : document.getElementById("publish-loader");
     const textElem = blogStatus === "CREATED" ? document.getElementById("create-text") : document.getElementById("publish-text");
@@ -92,7 +92,7 @@ const WriteBlog = (props) => {
 
     const formData = new FormData();
     formData.append("blogData", JSON.stringify(requestBody));
-    formData.append("blogPreviewImage", blogPreviewImage);
+    if(blogPreviewImage !== "") formData.append("blogPreviewImage", blogPreviewImage);
 
     const headers = {
       Authorization: "Bearer " + auth.authToken,
@@ -113,6 +113,7 @@ const WriteBlog = (props) => {
 
     if (response.status === 200) {
       setBlogTitle("");
+      setBlogCategoryImageBase64(uploadImage);
       setBlogCategory("");
       editorRef.current.setContent("");
       props.showToast("Success", "Blog created successfully");
@@ -120,6 +121,7 @@ const WriteBlog = (props) => {
     else {
       props.showToast("Failed", "Error creating blog, please try again later");
     }
+    setLoading(false);
   }
 
   const checkValidationsForCreateBlog = async () => {
@@ -138,72 +140,75 @@ const WriteBlog = (props) => {
   }
 
   return (
-    <>
-    <Navbar />
-      <div className="d-flex flex-row justify-content-center" style={{ width: "100vw" }}>
-        <div className="border border-primary rounded-4 p-5" style={{ width: "80%" }}>
-          <form onSubmit={handleBlogSubmit}>
-            <div className="mb-4">
-              <button type="button" className="btn text-primary p-0" id="create-account" style={{ border: "none" }} onClick={() => navigate("/")}>
-                &#8592; Back to home
-              </button>
-            </div>
-            <h4 className="text-primary mb-4 text-center">What's going in your mind?</h4>
-            <div className="mb-4">
-              <input type="text" className="form-control border-0 border-bottom shadow-none" value={blogTitle} onChange={handleBlogTitle} placeholder="Your title goes here" required />
-            </div>
-            <div className="mb-4 d-flex flex-row">
-              <div className="w-50 me-4">
-                <label htmlFor="formFile" className="form-label">Preview image</label>
-                <input className="form-control" type="file" id="formFile" onChange={handleFileChange} />
+    <div style={{ width: "100vw", height: "100vh" }}>
+      <div className="my-5">
+        <div className="d-flex flex-row justify-content-center">
+          <div className="rounded-4 p-5 shadow" style={{ width: "80%" }}>
+            <form onSubmit={handleBlogSubmit}>
+              <div>
+                <h4 className="text-center"><i>What's going in your mind?</i></h4>
               </div>
-              <div className="w-50 d-flex flex-column ms-4">
-                <label htmlFor="formFile" className="form-label">Category</label>
-                <select className="form-select" aria-label="Default select example" value={blogCategory} onClick={handleFetchCategories} onChange={handleSelectedCategory} required >
-                  <option >Select your article category</option>
+              <div className="mt-5 d-flex flex-row justify-content-center">
+                <input type="text" className="form-control border-0 border-bottom shadow-sm text-center" value={blogTitle} onChange={handleBlogTitle} placeholder="Your title goes here" required style={{ fontStyle: "italic" }} />
+              </div>
+              <div className="my-3 d-flex flex-column align-items-center">
+                <label htmlFor="formFile" className="form-label text-center my-3"><i><big>Preview image</big></i></label>
+                <div className="w-75 d-flex justify-content-center">
+                  <img src={blogCategoryImageBase64} class="img-fluid" style={{ maxWidth: "400px", maxHeight: "200px" }} id="preview-image" onClick={() => document.getElementById("formFile").click()} alt="Error loading"/>
+                  <input className="form-control w-50" hidden type="file" id="formFile" accept="image/*" onChange={handleFileChange} />
+                </div>
+              </div>
+              <div className="my-5 d-flex justify-content-center">
+                <select className="form-select w-50 fst-italic shadow-sm" aria-label="Default select example" value={blogCategory} onClick={handleFetchCategories} onChange={handleSelectedCategory} required >
+                  <option className="text-center"><i>Select your blog category</i></option>
                   {categories.map((category) => (
-                    <option key={category.categoryId} value={category.title}>{category.title}</option>
+                    <option className="text-center" key={category.categoryId} value={category.title}>{category.title}</option>
                   ))}
                 </select>
               </div>
-            </div>
-            <div className="mb-4">
-              <label htmlFor="exampleInputPassword1" className="form-label">Write your content</label>
-              <Editor
-                tinymceScriptSrc={process.env.PUBLIC_URL + '/tinymce/tinymce.min.js'}
-                onInit={(evt, editor) => editorRef.current = editor}
-                init={{
-                  height: 500,
-                  menubar: false,
-                  plugins: [
-                    'advlist', 'autolink', 'lists', 'link', 'image', 'charmap',
-                    'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
-                    'insertdatetime', 'media', 'table', 'preview', 'help', 'wordcount'
-                  ],
-                  toolbar: 'undo redo | blocks | ' +
-                    'bold italic forecolor | alignleft aligncenter ' +
-                    'alignright alignjustify | bullist numlist outdent indent | ' +
-                    'removeformat | help',
-                  content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }'
-                }}
-              />
-              {/* <button onClick={log}>Log editor content</button> */}
-            </div>
-            <div className="d-flex justify-content-center">
-              <button type="submit" className="btn btn-primary me-2" onClick={() => setBlogStatus("CREATED")}>
-                <span className="spinner-border-sm" id="create-loader" aria-hidden="true"></span>
-                <span role="status" id="create-text">Create</span>
-              </button>
-              <button type="submit" className="btn btn-primary ms-2" onClick={() => setBlogStatus("PUBLISHED")}>
-                <span className="spinner-border-sm" id="publish-loader" aria-hidden="true"></span>
-                <span role="status" id="publish-text" >Publish</span>
-              </button>
-            </div>
-          </form>
+              <div className="mt-5 mb-4">
+                <div className="text-center my-2">
+                  <label htmlFor="exampleInputPassword1" className="form-label"><i><big>Write your content</big></i></label>
+                </div>
+                <div className="shadow-sm">
+                  <Editor
+                    tinymceScriptSrc={process.env.PUBLIC_URL + '/tinymce/tinymce.min.js'}
+                    onInit={(evt, editor) => editorRef.current = editor}
+                    init={{
+                      height: 500,
+                      menubar: false,
+                      plugins: [
+                        'advlist', 'autolink', 'lists', 'link', 'image', 'charmap',
+                        'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+                        'insertdatetime', 'media', 'table', 'preview', 'help', 'wordcount'
+                      ],
+                      toolbar: 'undo redo | blocks | ' +
+                        'bold italic forecolor | alignleft aligncenter ' +
+                        'alignright alignjustify | bullist numlist outdent indent | ' +
+                        'removeformat | help',
+                      content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }'
+                    }}
+                  />
+                </div>
+              </div>
+              <div className="d-flex justify-content-center">
+                <button type="submit" className="btn btn-success btn-sm me-2" onClick={() => setBlogStatus("CREATED")} disabled={loading}>
+                  <span className="spinner-border-sm" id="create-loader" aria-hidden="true"></span>
+                  <span role="status" id="create-text"><i>Create</i></span>
+                </button>
+                <button type="submit" className="btn btn-danger btn-sm ms-2" onClick={() => setBlogStatus("PUBLISHED")} disabled={loading}>
+                  <span className="spinner-border-sm" id="publish-loader" aria-hidden="true"></span>
+                  <span role="status" id="publish-text" ><i>Publish</i></span>
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       </div>
-      <Footer />
-    </>
+      <div>
+        <Footer />
+      </div>
+    </div>
   )
 }
 

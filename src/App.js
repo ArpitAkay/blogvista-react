@@ -19,6 +19,8 @@ import WriteBlog from './components/write_blog/WriteBlog';
 import ShowBlog from './components/show_blog/ShowBlog';
 import MyBlogs from './components/my_blogs/MyBlogs';
 import EditBlog from './components/edit_blog/EditBlog';
+import Pagination from './components/pagination/Pagination';
+import Navbar from './components/navbar/Navbar';
 
 function App() {
   const [toast, setToast] = useState(false);
@@ -32,20 +34,21 @@ function App() {
 
     setTimeout(() => {
       setToast(false)
-    }, 5000)
+    }, 2000)
   }
 
   return (
     <>
       <Toast toast={toast} heading={heading} message={message} />
       <Router>
+        <Navbar />
         <Routes>
           <Route path="/login" element={<Login showToast={showToast} />} />
           <Route path="/signup" element={<Signup showToast={showToast} />} />
           <Route path="/forgetPassword" element={<SendEmail showToast={showToast} />} />
           <Route path="/verifyEmail" element={<SendEmail showToast={showToast} />} />
           <Route path="/mail/forgetPassword" element={<ForgetPassword showToast={showToast} />} />
-          <Route path="/mail/verifyEmail" element={ <VerifyEmail showToast={showToast} />} />
+          <Route path="/mail/verifyEmail" element={<VerifyEmail showToast={showToast} />} />
           <Route path='/spinner' element={<Spinner />} />
 
           <Route element={<ProtectedRoutes />}>
@@ -55,6 +58,7 @@ function App() {
             <Route path="/showBlog/:blogId" element={<ShowBlog showToast={showToast} />} />
             <Route path="/myBlogs" element={<MyBlogs showToast={showToast} />} />
             <Route path="/editBlog/:blogId" element={<EditBlog showToast={showToast} />} />
+            <Route path="/pagination" element={<Pagination showToast={showToast} />} />
           </Route>
         </Routes>
       </Router>

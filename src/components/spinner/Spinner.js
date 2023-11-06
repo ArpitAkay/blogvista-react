@@ -1,11 +1,9 @@
 import React from 'react'
+import './Spinner.css';
 
 const Spinner = () => {
     return (
-        <div className="d-flex justify-content-center align-items-center" style={{width: "100vw", height: "100vh"}}>
-            <div className="spinner-border" role="status">
-                <span className="visually-hidden">Loading...</span>
-            </div>
+        <div className="loader">
         </div>
     )
 }

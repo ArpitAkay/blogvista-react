@@ -1,10 +1,12 @@
 import React from 'react'
+import './Search.css'
 
-const Search = () => {
+const Search = (props) => {
+    
     return (
-        <div className="w-100 d-flex justify-content-center mt-5">
-            <form style={{ width: "50%" }}>
-                <input className="form-control me-2" type="search" placeholder="Search" aria-label="Search" />
+        <div className="w-100 d-flex justify-content-center">
+            <form style={{ width: "50%" }} onSubmit={props.handleSearchSubmit}>
+                <input className="form-control me-2 fst-italic" type="search" placeholder="Type to search..." aria-label="Search" value={props.searchText} onChange={props.handleSearchChange} />
             </form>
         </div>
     )
