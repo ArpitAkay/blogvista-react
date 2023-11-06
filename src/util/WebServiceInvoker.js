@@ -18,10 +18,16 @@ export const WebServiceInvokerRest = async (hostname, urlContent, method, header
         config.params = requestParams;
     }
 
+    let response;
     try {
-        return await axios(config);
+        response = await axios(config);
     }
     catch (err) {
-        return err.response;
+        response =  err.response;
     }
+
+    console.log(response);
+    console.log(response.status);
+
+    return response;
 }

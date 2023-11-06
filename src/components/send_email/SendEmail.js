@@ -1,12 +1,13 @@
 import React, { useRef, useState } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { WebServiceInvokerRest } from '../../util/WebServiceInvoker';
 
 const SendEmail = (props) => {
     const [email, setEmail] = useState("");
     const [storeEmail, setStoreEmail] = useState("");
     const [timer, setTimer] = useState("");
-    const navigate = useNavigate("");
+    const [loading, setLoading] = useState(false);
+    const [sendAgainMailBtn, setSendAgainMailBtn] = useState(true);
     const ref = useRef(null);
     const location = useLocation();
 
@@ -16,28 +17,28 @@ const SendEmail = (props) => {
 
     const handleSendMail = async (event) => {
         event.preventDefault();
-        const sendMailSpanelem = document.getElementById("send-mail-span");
-        sendMailSpanelem.classList.add("visually-hidden");
-        const spinnerLoader = document.getElementById("spinner-loader");
-        spinnerLoader.classList.add("spinner-border");
+        setLoading(true);
 
         const hostname = process.env.REACT_APP_HOST_AND_PORT;
-        const urlContent = process.env.REACT_APP_AUTHENTICATION_ENDPOINT + 
-        (location.pathname === "/forgetPassword" ? process.env.REACT_APP_SEND_FORGET_PASSWORD_MAIL : process.env.REACT_APP_SEND_EMAIL_VERIFICATION_MAIL);
+        const urlContent = process.env.REACT_APP_AUTHENTICATION_ENDPOINT +
+            (location.pathname === "/forgetPassword" ? process.env.REACT_APP_SEND_FORGET_PASSWORD_MAIL : process.env.REACT_APP_SEND_EMAIL_VERIFICATION_MAIL);
 
-        console.log("urlContent: " + urlContent);
-
-        const requestBody = {
+        const emailReq = {
             email: email
         };
 
-        const response = await WebServiceInvokerRest(hostname, urlContent, "POST", null, requestBody, null);
-        sendMailSpanelem.classList.remove("visually-hidden");
-        spinnerLoader.classList.remove("spinner-border");
+        const response = await WebServiceInvokerRest(
+            hostname,
+            urlContent,
+            "POST",
+            null,
+            emailReq,
+            null
+        );
+
         if (response.status === 200) {
             setStoreEmail(email);
             props.showToast("Success", response.data);
-
             let time = 60;
             setTimer(time);
             let interval = setInterval(() => {
@@ -46,33 +47,39 @@ const SendEmail = (props) => {
                 if (time === 0) {
                     setTimer("");
                     clearInterval(interval);
-                    const elem = document.getElementById("send-mail-again-btn");
-                    elem.disabled = false;
+                    setSendAgainMailBtn(false);
                 }
             }, 1000);
+            setEmail("");
         }
         else {
             props.showToast("Failed", response.data.detail);
         }
-        setEmail("");
+        setLoading(false);
     }
 
     const handleSendMailAgain = async () => {
         const hostname = process.env.REACT_APP_HOST_AND_PORT;
-        const urlContent = process.env.REACT_APP_AUTHENTICATION_ENDPOINT + 
-        location.pathname === "/forgetPassword" ? process.env.REACT_APP_SEND_FORGET_PASSWORD_MAIL : process.env.REACT_APP_SEND_EMAIL_VERIFICATION_MAIL; 
+        const urlContent = process.env.REACT_APP_AUTHENTICATION_ENDPOINT +
+            (location.pathname === "/forgetPassword" ? process.env.REACT_APP_SEND_FORGET_PASSWORD_MAIL : process.env.REACT_APP_SEND_EMAIL_VERIFICATION_MAIL);
 
         const requestBody = {
             email: storeEmail
         };
 
-        const response = await WebServiceInvokerRest(hostname, urlContent, "POST", null, requestBody, null);
-        
+        const response = await WebServiceInvokerRest(
+            hostname, 
+            urlContent, 
+            "POST", 
+            null, 
+            requestBody, 
+            null
+        );
+
         if (response.status === 200) {
             ref.current.click();
             props.showToast("Success", response.data);
-            const elem = document.getElementById("send-mail-again-btn");
-            elem.disabled = true;
+            setSendAgainMailBtn(true);
             let time = 60;
             setTimer(time);
             let interval = setInterval(() => {
@@ -81,8 +88,7 @@ const SendEmail = (props) => {
                 if (time === 0) {
                     setTimer("");
                     clearInterval(interval);
-                    const elem = document.getElementById("send-mail-again-btn");
-                    elem.disabled = false;
+                    setSendAgainMailBtn(false);
                 }
             }, 1000);
         }
@@ -92,16 +98,11 @@ const SendEmail = (props) => {
     }
 
     return (
-        <div style={{ width: "100vw", height: "100vh" }}>
+        <div style={{ width: "100vw", height: "87vh" }}>
             <div className="d-flex flex-row justify-content-center" style={{ position: "relative", top: "20%" }}>
-                <div className="border border-primary rounded-4 p-5">
+                <div className="border shadow rounded-4 p-5">
                     <form onSubmit={handleSendMail}>
-                        <div className="mb-2">
-                            <button type="button" className="btn text-primary p-0" id="create-account" style={{ border: "none" }} onClick={() => navigate("/login")}>
-                                &#8592; Back to login
-                            </button>
-                        </div>
-                        <h4 className="text-primary">Please enter your email</h4>
+                        <h4 className="text-primary"><i>Please enter your email</i></h4>
                         <div className="my-3">
                             <input
                                 type="email"
@@ -113,15 +114,15 @@ const SendEmail = (props) => {
                             />
                         </div>
                         <div className="d-flex justify-content-center">
-                            <button disabled={email.length === 0 ? true : false} type="submit" className="btn btn-primary">
-                                <span className="spinner-border-sm" id="spinner-loader" aria-hidden="true"></span>
-                                <span id="send-mail-span" role="status">Send</span>
+                            <button type="submit" className="btn btn-sm btn-primary" disabled={email.length === 0 || loading}>
+                                <span className={`${loading ? "spinner-border" : ""} spinner-border-sm`} aria-hidden="true"></span>
+                                <span className={loading ? "visually-hidden" : ""} role="status"><i>Send</i></span>
                             </button>
                         </div>
                     </form>
                     <div className="d-flex flex-row justify-content-end">
-                        <button type="button" className="btn text-primary mt-3 p-0" id="send-mail-again-btn" data-bs-toggle="modal" data-bs-target="#exampleModal" style={{ border: "none" }} disabled={true}>
-                            Didn't receive mail? {timer}
+                        <button type="button" className="btn text-primary mt-3 p-0" data-bs-toggle="modal" data-bs-target="#exampleModal" style={{ border: "none" }} disabled={sendAgainMailBtn}>
+                            <i>Didn't receive mail? {timer}</i>
                         </button>
                     </div>
                     <div className="modal fade " id="exampleModal" tabIndex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">

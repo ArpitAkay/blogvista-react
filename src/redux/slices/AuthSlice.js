@@ -33,6 +33,10 @@ const AuthSlice = createSlice({
                     state.role = "";
                     break;
                 }
+                case "UpdateName" : {
+                    state.name = action.payload.state.name;
+                    break;
+                }
                 default : 
                     break;
             }

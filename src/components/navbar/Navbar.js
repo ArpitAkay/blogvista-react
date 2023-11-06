@@ -1,12 +1,14 @@
 import React from 'react'
-import { useDispatch } from 'react-redux';
-import { Link, useNavigate } from 'react-router-dom'
+import { useDispatch, useSelector } from 'react-redux';
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { updateAuth } from '../../redux/slices/AuthSlice';
 import './Navbar.css'
 
 const Navbar = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
+    const auth = useSelector(state => state.auth);
+    const location = useLocation();
 
     const handleLogout = () => {
         dispatch(updateAuth({
@@ -34,18 +36,22 @@ const Navbar = () => {
                 </button>
                 <div className="collapse navbar-collapse" id="navbarSupportedContent">
                     <ul className="navbar-nav me-auto mb-2 mb-lg-0">
-                        <li className="nav-item">
+                        {(auth.isAuthenticated && location.pathname !== "/mail/forgetPassword" && location.pathname !== "/mail/verifyEmail") &&  <li className="nav-item">
                             <Link className="nav-link active" aria-current="page" to="/">Home</Link>
-                        </li>
-                        <li className="nav-item">
+                        </li>}
+                        {(auth.isAuthenticated && location.pathname !== "/mail/forgetPassword" && location.pathname !== "/mail/verifyEmail") && <li className="nav-item">
                             <Link className="nav-link active" aria-current="page" onClick={handleContactClick}>Contact</Link>
-                        </li>
+                        </li>}
                     </ul>
-                    <span className="navbar-text d-flex flex-row align-items-baseline me-2">
+                    {(auth.isAuthenticated && location.pathname !== "/mail/forgetPassword" && location.pathname !== "/mail/verifyEmail") && <span className="navbar-text d-flex flex-row align-items-baseline me-2">
                         <i className="fa-solid fa-pen-nib me-2" onClick={() => navigate("/writeBlog")}></i>
                         <Link className="nav-link active" aria-current="page" to="/writeBlog">Write</Link>
-                    </span>
-                    <div>
+                    </span>}
+                    {(!auth.isAuthenticated || location.pathname === "/mail/forgetPassword" || location.pathname === "/mail/verifyEmail") && <span className="navbar-text d-flex flex-row align-items-baseline me-2">
+                        {(location.pathname === "/signup" || location.pathname === "/forgetPassword" || location.pathname === "/verifyEmail" || location.pathname === "/mail/forgetPassword" || location.pathname === "/mail/verifyEmail") && <button className="btn btn-sm btn-primary" type="button" onClick={() => navigate("/login")}>Login</button>}
+                        {location.pathname === "/login" && <button className="btn btn-sm btn-primary" type="button" onClick={() => navigate("/signup")}>Sign Up</button>}
+                    </span>}
+                    {(auth.isAuthenticated && location.pathname !== "/mail/forgetPassword" && location.pathname !== "/mail/verifyEmail")&& <div>
                         <div className="btn-group" role="group">
                             <button type="button" className="btn" data-bs-toggle="dropdown" aria-expanded="false" style={{ border: "none" }}>
                                 <svg xmlns="http://www.w3.org/2000/svg" width="25" height="16" fill="currentColor" className="bi bi-gear-fill" viewBox="0 0 16 16">
@@ -58,7 +64,7 @@ const Navbar = () => {
                                 <li><Link className="dropdown-item" onClick={handleLogout}>Logout</Link></li>
                             </ul>
                         </div>
-                    </div>
+                    </div>}
                 </div>
             </div>
         </nav>
