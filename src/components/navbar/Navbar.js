@@ -1,12 +1,14 @@
 import React from 'react'
-import { useDispatch } from 'react-redux';
-import { Link, useNavigate } from 'react-router-dom'
+import { useDispatch, useSelector } from 'react-redux';
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { updateAuth } from '../../redux/slices/AuthSlice';
 import './Navbar.css'
 
 const Navbar = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
+    const auth = useSelector(state => state.auth);
+    const location = useLocation();
 
     const handleLogout = () => {
         dispatch(updateAuth({
@@ -21,6 +23,10 @@ const Navbar = () => {
         navigate("/login");
     }
 
+    const handleContactClick = () => {
+        document.getElementById("footer").scrollIntoView({ behavior: 'smooth' });
+    }
+
     return (
         <nav className="navbar navbar-expand-lg bg-primary-subtle">
             <div className="container-fluid w-75">
@@ -30,15 +36,22 @@ const Navbar = () => {
                 </button>
                 <div className="collapse navbar-collapse" id="navbarSupportedContent">
                     <ul className="navbar-nav me-auto mb-2 mb-lg-0">
-                        <li className="nav-item">
-                            <Link className="nav-link active" aria-current="page" href="/#">Contact</Link>
-                        </li>
+                        {(auth.isAuthenticated && location.pathname !== "/mail/forgetPassword" && location.pathname !== "/mail/verifyEmail") &&  <li className="nav-item">
+                            <Link className="nav-link active" aria-current="page" to="/">Home</Link>
+                        </li>}
+                        {(auth.isAuthenticated && location.pathname !== "/mail/forgetPassword" && location.pathname !== "/mail/verifyEmail") && <li className="nav-item">
+                            <Link className="nav-link active" aria-current="page" onClick={handleContactClick}>Contact</Link>
+                        </li>}
                     </ul>
-                    <span className="navbar-text d-flex flex-row align-items-baseline me-2">
-                        <i className="fa-solid fa-pen-nib me-2"></i>
-                        <Link className="nav-link active" aria-current="page" href="/#">Write</Link>
-                    </span>
-                    <div>
+                    {(auth.isAuthenticated && location.pathname !== "/mail/forgetPassword" && location.pathname !== "/mail/verifyEmail") && <span className="navbar-text d-flex flex-row align-items-baseline me-2">
+                        <i className="fa-solid fa-pen-nib me-2" onClick={() => navigate("/writeBlog")}></i>
+                        <Link className="nav-link active" aria-current="page" to="/writeBlog">Write</Link>
+                    </span>}
+                    {(!auth.isAuthenticated || location.pathname === "/mail/forgetPassword" || location.pathname === "/mail/verifyEmail") && <span className="navbar-text d-flex flex-row align-items-baseline me-2">
+                        {(location.pathname === "/signup" || location.pathname === "/forgetPassword" || location.pathname === "/verifyEmail" || location.pathname === "/mail/forgetPassword" || location.pathname === "/mail/verifyEmail") && <button className="btn btn-sm btn-primary" type="button" onClick={() => navigate("/login")}>Login</button>}
+                        {location.pathname === "/login" && <button className="btn btn-sm btn-primary" type="button" onClick={() => navigate("/signup")}>Sign Up</button>}
+                    </span>}
+                    {(auth.isAuthenticated && location.pathname !== "/mail/forgetPassword" && location.pathname !== "/mail/verifyEmail")&& <div>
                         <div className="btn-group" role="group">
                             <button type="button" className="btn" data-bs-toggle="dropdown" aria-expanded="false" style={{ border: "none" }}>
                                 <svg xmlns="http://www.w3.org/2000/svg" width="25" height="16" fill="currentColor" className="bi bi-gear-fill" viewBox="0 0 16 16">
@@ -47,10 +60,11 @@ const Navbar = () => {
                             </button>
                             <ul className="dropdown-menu">
                                 <li><Link className="dropdown-item" to="/myAccount">My Account</Link></li>
+                                <li><Link className="dropdown-item" to="/myBlogs">My Blogs</Link></li>
                                 <li><Link className="dropdown-item" onClick={handleLogout}>Logout</Link></li>
                             </ul>
                         </div>
-                    </div>
+                    </div>}
                 </div>
             </div>
         </nav>

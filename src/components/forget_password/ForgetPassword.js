@@ -1,146 +1,180 @@
-import React, { useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react'
+import { useLocation } from 'react-router';
 import { WebServiceInvokerRest } from '../../util/WebServiceInvoker';
 
 const ForgetPassword = (props) => {
-    const [email, setEmail] = useState("");
-    const [storeEmail, setStoreEmail] = useState("");
-    const [timer, setTimer] = useState("");
-    const navigate = useNavigate("");
-    const ref = useRef(null);
+    const [isTokenVerified, setIsTokenVerified] = useState(false);
+    const [tokenResponse, setTokenResponse] = useState("");
+    const [newPassword, setNewPassword] = useState("");
+    const [confirmNewPassword, setConfirmNewPassword] = useState("");
+    const [submitLoading, setSubmitLoading] = useState(false);
+    const location = useLocation();
+    const search = location.search;
+    const queryParams = new URLSearchParams(search);
 
-    const handleEmail = (event) => {
-        setEmail(event.target.value);
+    const handleNewPassword = (event) => {
+        const newPasswordValue = event.target.value;
+        setNewPassword(event.target.value);
+        const newPasswordElem = document.getElementById("newPassword");
+        newPasswordValue.match(
+            "^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])(?=.{10,})[a-zA-Z0-9!@#$%^&*]+$"
+        )
+            ? newPasswordElem.classList.add("is-valid")
+            : newPasswordElem.classList.remove("is-valid");
     }
 
-    const handleSendMail = async (event) => {
+    const handleConfirmNewPassword = (event) => {
+        const confirmNewPasswordValue = event.target.value;
+        setConfirmNewPassword(event.target.value);
+        const confirmNewPasswordElem = document.getElementById("confirmNewPassword");
+        confirmNewPasswordValue.match(
+            "^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])(?=.{10,})[a-zA-Z0-9!@#$%^&*]+$"
+        ) && confirmNewPasswordValue === newPassword
+            ? confirmNewPasswordElem.classList.add("is-valid")
+            : confirmNewPasswordElem.classList.remove("is-valid");
+    }
+
+    const handleResetPasswordSubmit = async (event) => {
         event.preventDefault();
-        const sendMailSpanelem = document.getElementById("send-mail-span");
-        sendMailSpanelem.classList.add("visually-hidden");
-        const spinnerLoader = document.getElementById("spinner-loader");
-        spinnerLoader.classList.add("spinner-border");
+        setSubmitLoading(true);
 
+        const isValid = checkValidationForResetPassword();
+
+        if(isValid) {
+            setSubmitLoading(false);
+            return;
+        }
+        
         const hostname = process.env.REACT_APP_HOST_AND_PORT;
-        const urlContent = process.env.REACT_APP_AUTHENTICATION_ENDPOINT + process.env.REACT_APP_VERIFY_EMAIL;
+        const urlContent = process.env.REACT_APP_AUTHENTICATION_ENDPOINT +
+            process.env.REACT_APP_FORGET_PASSWORD;
 
         const requestBody = {
-            email: email
+            verificationToken: queryParams.get("token"),
+            newPassword: newPassword
         };
 
-        const response = await WebServiceInvokerRest(hostname, urlContent, "POST", requestBody, null);
-        console.log(response)
-        sendMailSpanelem.classList.remove("visually-hidden");
-        spinnerLoader.classList.remove("spinner-border");
-        if (response.status === 200) {
-            setStoreEmail(email);
-            props.showToast("Success", response.data);
+        const response = await WebServiceInvokerRest(
+            hostname,
+            urlContent,
+            "POST",
+            null,
+            requestBody,
+            null
+        );
 
-            let time = 60;
-            setTimer(time);
-            let interval = setInterval(() => {
-                time--;
-                setTimer(time);
-                if (time === 0) {
-                    setTimer("");
-                    clearInterval(interval);
-                    const elem = document.getElementById("send-mail-again-btn");
-                    elem.disabled = false;
-                }
-            }, 1000);
+        if (response.status === 200) {
+            setNewPassword("");
+            setConfirmNewPassword("");
+            props.showToast("Success", response.data);
+        } else {
+            props.showToast("Failed", response.data.detail)
         }
-        else {
-            props.showToast("Failed", response.data.detail);
-        }
-        setEmail("");
+        setSubmitLoading(false);
     }
 
-    const handleSendMailAgain = async () => {
+    const VerifyForgetPasswordToken = async () => {
         const hostname = process.env.REACT_APP_HOST_AND_PORT;
-        const urlContent = process.env.REACT_APP_AUTHENTICATION_ENDPOINT + process.env.REACT_APP_VERIFY_EMAIL;
+        const urlContent = process.env.REACT_APP_AUTHENTICATION_ENDPOINT + process.env.REACT_APP_VERIFY_FORGET_PASSWORD_TOKEN;
 
-        const requestBody = {
-            email: storeEmail
+        const forgetPasswordParams = {
+            token: queryParams.get("token")
         };
 
-        const response = await WebServiceInvokerRest(hostname, urlContent, "POST", requestBody, null);
-        console.log(response);
-        if (response.status === 200) {
-            ref.current.click();
-            props.showToast("Success", response.data);
-            const elem = document.getElementById("send-mail-again-btn");
-            elem.disabled = true;
-            let time = 60;
-            setTimer(time);
-            let interval = setInterval(() => {
-                time--;
-                setTimer(time);
-                if (time === 0) {
-                    setTimer("");
-                    clearInterval(interval);
-                    const elem = document.getElementById("send-mail-again-btn");
-                    elem.disabled = false;
-                }
-            }, 1000);
+        const headers = {
+            "Authorization": "Bearer " + queryParams.get("authToken")
         }
-        else {
-            props.showToast("Failed", response.data.detail);
+
+        const response = await WebServiceInvokerRest(
+            hostname,
+            urlContent,
+            "POST",
+            headers,
+            null,
+            forgetPasswordParams
+        );
+
+        if (response.status === 200) {
+            setIsTokenVerified(true);
+        } else {
+            setTokenResponse(response.data.detail);
         }
     }
 
-    return (
-        <div style={{ width: "100vw", height: "100vh" }}>
-            <div className="d-flex flex-row justify-content-center" style={{ position: "relative", top: "20%" }}>
-                <div className="border border-primary rounded-4 p-5">
-                    <form onSubmit={handleSendMail}>
-                        <div className="mb-2">
-                            <button type="button" className="btn text-primary p-0" id="create-account" style={{ border: "none" }} onClick={() => navigate("/login")}>
-                                &#8592; Back to login
-                            </button>
-                        </div>
-                        <h4 className="text-primary">Please enter your email</h4>
-                        <div className="my-3">
-                            <input
-                                type="email"
-                                className="form-control"
-                                id="email"
-                                value={email}
-                                onChange={handleEmail}
-                                required
-                            />
-                        </div>
-                        <div className="d-flex justify-content-center">
-                            <button disabled={email.length === 0 ? true : false} type="submit" className="btn btn-primary">
-                                <span class="spinner-border-sm" id="spinner-loader" aria-hidden="true"></span>
-                                <span id="send-mail-span" role="status">Send</span>
-                            </button>
-                        </div>
-                    </form>
-                    <div className="d-flex flex-row justify-content-end">
-                        <button type="button" className="btn text-primary mt-3 p-0" id="send-mail-again-btn" data-bs-toggle="modal" data-bs-target="#exampleModal" style={{ border: "none" }} disabled={true}>
-                            Didn't receive mail? {timer}
-                        </button>
-                    </div>
-                    <div className="modal fade " id="exampleModal" tabIndex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                        <div className="modal-dialog modal-dialog-centered">
-                            <div className="modal-content bg-light">
-                                <div className="modal-header">
-                                    <h1 className="modal-title fs-5" id="exampleModalLabel">Didn't receive mail?</h1>
-                                    <button ref={ref} type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                </div>
-                                <div className="modal-body">
-                                    Send again email to {storeEmail}
-                                </div>
-                                <div className="modal-footer">
-                                    <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">No</button>
-                                    <button type="button" className="btn btn-primary" onClick={handleSendMailAgain}>Yes</button>
-                                </div>
-                            </div>
-                        </div>
+    const checkValidationForResetPassword = () => {
+        if (!newPassword.match("^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])(?=.{10,})[a-zA-Z0-9!@#$%^&*]+$")) {
+            props.showToast("Failed", "Password should be atleast 10 characters long and should contain atleast 1 lowercase, 1 uppercase, 1 number and 1 special character");
+            return true;
+        }
+        if (!confirmNewPassword.match("^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])(?=.{10,})[a-zA-Z0-9!@#$%^&*]+$")) {
+            props.showToast("Failed", "Password should be atleast 10 characters long and should contain atleast 1 lowercase, 1 uppercase, 1 number and 1 special character");
+            return true;
+        }
+        if (newPassword !== confirmNewPassword) {
+            props.showToast("Failed", "New password and confirm new password should match");
+            return true;
+        }
+        return false;
+    }
+
+    useEffect(() => {
+        VerifyForgetPasswordToken();
+        // eslint-disable-next-line
+    }, []);
+
+    if (!isTokenVerified) {
+        return (
+            <div className="d-flex justify-content-center align-items-center" style={{ width: "100vw", height: "92.3vh" }}>
+                <div className="w-50 border shadow-sm rounded-4 p-4">
+                    <div className="text-center fst-italic" dangerouslySetInnerHTML={{ __html: tokenResponse }}>
                     </div>
                 </div>
             </div>
-        </div>
-    )
+        )
+    }
+    if (isTokenVerified) {
+        return (
+            <div className="login-div">
+                <div className="d-flex flex-row justify-content-center" style={{ position: "relative", top: "20%" }}>
+                    <form className="border shadow rounded-4 p-5" onSubmit={handleResetPasswordSubmit}>
+                        <h4 className="text-primary"><i>Reset your password</i></h4>
+                        <div className="my-3">
+                            <label htmlFor="email" className="form-label">
+                                <i>New Password</i>
+                            </label>
+                            <input
+                                type="password"
+                                className="form-control"
+                                id="newPassword"
+                                value={newPassword}
+                                onChange={handleNewPassword}
+                                required
+                            />
+                        </div>
+                        <div>
+                            <label htmlFor="password" className="form-label">
+                                <i>Confirm New Password</i>
+                            </label>
+                            <input
+                                type="password"
+                                className="form-control"
+                                id="confirmNewPassword"
+                                value={confirmNewPassword}
+                                onChange={handleConfirmNewPassword}
+                                required
+                            />
+                        </div>
+                        <div className="mt-4 d-flex justify-content-center">
+                            <button type="submit" className="btn btn-sm btn-primary" disabled={submitLoading}>
+                                <span className={`${submitLoading ? "spinner-border" : ""} spinner-border-sm`} aria-hidden="true"></span>
+                                <span className={submitLoading ? "visually-hidden" : ""} role="status"><i>Submit</i></span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        );
+    }
 }
 
 export default ForgetPassword;

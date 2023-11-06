@@ -6,6 +6,7 @@ const initialState = {
     isAuthenticated: false,
     authToken: "",
     refreshToken: "",
+    role: ""
 }
 
 const AuthSlice = createSlice({
@@ -15,12 +16,12 @@ const AuthSlice = createSlice({
         updateAuth(state, action) {
             switch(action.payload.type) {
                 case "LoggedIn": {
-                    console.log(action.payload.state);
                     state.name = action.payload.state.name;
                     state.email = action.payload.state.email;
                     state.isAuthenticated = true;
                     state.authToken = action.payload.state.authToken;
                     state.refreshToken = action.payload.state.refreshToken;
+                    state.role = action.payload.state.role;
                     break;
                 }
                 case "LoggedOut": {
@@ -29,6 +30,11 @@ const AuthSlice = createSlice({
                     state.isAuthenticated = false;
                     state.authToken = "";
                     state.refreshToken = "";
+                    state.role = "";
+                    break;
+                }
+                case "UpdateName" : {
+                    state.name = action.payload.state.name;
                     break;
                 }
                 default : 
