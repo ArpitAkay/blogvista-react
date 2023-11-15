@@ -59,8 +59,8 @@ const Blog = (props) => {
         <div>
             <div className="card mb-3" style={{ maxWidth: "830px", minHeight: "186px" }}>
                 <div className="row g-0 shadow">
-                    <div className="col-md-4" style={{maxHeight: "190px"}}>
-                        <img src={props.blog.previewImageUrl === null ? imageNotAvailable : props.blog.previewImageUrl} className="img-fluid rounded-start h-100 w-100" alt="Error loading" />
+                    <div className="col-md-4">
+                        <img src={props.blog.previewImageUrl === null ? imageNotAvailable : props.blog.previewImageUrl} className="img-fluid rounded-start h-100 w-100 object-fit-cover" alt="Error loading" />
                     </div>
                     <div className="col-md-8">
                         <div className="card-body">

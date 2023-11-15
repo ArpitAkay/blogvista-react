@@ -2,11 +2,13 @@ import React, { useEffect, useState } from 'react'
 import Blog from '../blog/Blog';
 import Footer from '../footer/Footer';
 import Search from '../search/Search';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { WebServiceInvokerRest } from '../../util/WebServiceInvoker';
 import Pagination from '../pagination/Pagination';
 import Spinner from '../spinner/Spinner';
 import SearchResultList from '../search_results_list/SearchResultList';
+import { useNavigate } from 'react-router-dom';
+import { updateAuth } from '../../redux/slices/AuthSlice';
 
 const Home = (props) => {
   const [currentPage, setCurrentPage] = useState(0);
@@ -25,7 +27,10 @@ const Home = (props) => {
   const [searchedHasPrevious, setSearchedHasPrevious] = useState(false);
   const [searchedTotalPages, setSearchedTotalPages] = useState(0);
   const [searchedPagination, setSearchedPagination] = useState(false);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
   const auth = useSelector((state) => state.auth);
+  const [authToken, setAuthToken] = useState(auth.authToken);
 
   const loadBlogs = async () => {
     const pageParams = {
@@ -33,10 +38,10 @@ const Home = (props) => {
       pageSize: 5,
     }
 
-    if(searchedPagination) pageParams.query = searchText;
+    if (searchedPagination) pageParams.query = searchText;
 
     const headers = {
-      "Authorization": "Bearer " + auth.authToken
+      "Authorization": "Bearer " + authToken
     };
 
     const hostname = process.env.REACT_APP_HOST_AND_PORT;
@@ -59,6 +64,39 @@ const Home = (props) => {
       setTotalPages(response.data.totalPages);
       setBlogs(response.data.blogs);
     }
+    else if (response.status === 403) {
+
+      const refreshTokenParams = {
+        refreshToken: auth.refreshToken
+      }
+
+      const hostname = process.env.REACT_APP_HOST_AND_PORT;
+      const urlContent = process.env.REACT_APP_AUTHENTICATION_ENDPOINT + process.env.REACT_APP_GENERATE_ACCESS_TOKEN_VIA_REFRESH_TOKEN;
+
+      const response = await WebServiceInvokerRest(
+        hostname,
+        urlContent,
+        "POST",
+        null,
+        null,
+        refreshTokenParams
+      );
+      if (response.status === 200) {
+        setAuthToken(response.data.accessToken);
+        dispatch(
+          updateAuth({
+            type: "UpdateToken",
+            state: {
+              authToken: response.data.accessToken,
+              refreshToken: response.data.refreshToken,
+            }
+          })
+        );
+      }
+      else {
+        navigate("/login");
+      }
+    }
     else {
       props.showToast("Failed", "Error fetching blogs");
     }
@@ -71,7 +109,7 @@ const Home = (props) => {
   useEffect(() => {
     loadBlogs();
     // eslint-disable-next-line
-  }, [pageNo])
+  }, [pageNo, authToken])
 
   const searchBlogs = async (searchValue) => {
     const searchParams = {
